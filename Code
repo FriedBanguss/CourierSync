@@ -1,0 +1,176 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+// Function Prototypes
+void adminMenu();
+void courierMenu();
+void createOrder();
+void viewOrdersAndCouriers();
+void assignCourier();
+void viewAssignedOrders();
+void updateOrderStatus();
+void pendingOrders();
+void saveAndExit();
+
+// Order structure
+typedef struct {
+    int orderId;
+    char details[256];
+    char status[20];
+    int assignedCourier;
+} Order;
+
+// Courier structure
+typedef struct {
+    int courierId;
+    char name[50];
+    int available;
+} Courier;
+
+// Global variables
+Order orders[100];
+Courier couriers[10];
+int orderCount = 0;
+int courierCount = 0;
+
+int main() {
+    int choice;
+    while (1) {
+        printf("\n--- Main Menu ---\n");
+        printf("1. Admin Login\n");
+        printf("2. Courier Login\n");
+        printf("3. Exit\n");
+        printf("Enter your choice: ");
+        scanf("%d", &choice);
+        switch (choice) {
+            case 1:
+                adminMenu();
+                break;
+            case 2:
+                courierMenu();
+                break;
+            case 3:
+                saveAndExit();
+                exit(0);
+            default:
+                printf("Invalid choice! Try again.\n");
+        }
+    }
+    return 0;
+}
+
+void adminMenu() {
+    int choice;
+    printf("\n--- Admin Menu ---\n");
+    printf("1. Create Order\n");
+    printf("2. View Orders and Couriers\n");
+    printf("3. Back to Main Menu\n");
+    printf("Enter your choice: ");
+    scanf("%d", &choice);
+    switch (choice) {
+        case 1:
+            createOrder();
+            break;
+        case 2:
+            viewOrdersAndCouriers();
+            break;
+        case 3:
+            return;
+        default:
+            printf("Invalid choice! Try again.\n");
+    }
+}
+
+void courierMenu() {
+    int choice;
+    printf("\n--- Courier Menu ---\n");
+    printf("1. View Assigned Orders\n");
+    printf("2. Update Order Status\n");
+    printf("3. Back to Main Menu\n");
+    printf("Enter your choice: ");
+    scanf("%d", &choice);
+    switch (choice) {
+        case 1:
+            viewAssignedOrders();
+            break;
+        case 2:
+            updateOrderStatus();
+            break;
+        case 3:
+            return;
+        default:
+            printf("Invalid choice! Try again.\n");
+    }
+}
+
+void createOrder() {
+    printf("\nEnter order details: ");
+    getchar();  // Clear newline
+    fgets(orders[orderCount].details, sizeof(orders[orderCount].details), stdin);
+    orders[orderCount].orderId = orderCount + 1;
+    strcpy(orders[orderCount].status, "Pending");
+    orders[orderCount].assignedCourier = -1;
+    orderCount++;
+    printf("Order created successfully! Order ID: %d\n", orderCount);
+}
+
+void viewOrdersAndCouriers() {
+    printf("\n--- Orders ---\n");
+    for (int i = 0; i < orderCount; i++) {
+        printf("Order ID: %d, Details: %s, Status: %s, Assigned Courier: %d\n",
+               orders[i].orderId, orders[i].details, orders[i].status, orders[i].assignedCourier);
+    }
+    printf("\n--- Couriers ---\n");
+    for (int i = 0; i < courierCount; i++) {
+        printf("Courier ID: %d, Name: %s, Available: %d\n",
+               couriers[i].courierId, couriers[i].name, couriers[i].available);
+    }
+}
+
+void viewAssignedOrders() {
+    printf("\n--- Assigned Orders ---\n");
+    for (int i = 0; i < orderCount; i++) {
+        if (orders[i].assignedCourier != -1) {
+            printf("Order ID: %d, Details: %s, Status: %s\n",
+                   orders[i].orderId, orders[i].details, orders[i].status);
+        }
+    }
+}
+
+void updateOrderStatus() {
+    int orderId;
+    printf("\nEnter Order ID to update: ");
+    scanf("%d", &orderId);
+    if (orderId <= 0 || orderId > orderCount) {
+        printf("Invalid Order ID!\n");
+        return;
+    }
+    printf("Enter new status (Pick Up, Deliver, Decline): ");
+    getchar();  // Clear newline
+    fgets(orders[orderId - 1].status, sizeof(orders[orderId - 1].status), stdin);
+    orders[orderId - 1].status[strcspn(orders[orderId - 1].status, "\n")] = '\0';  // Remove newline
+    printf("Order status updated!\n");
+}
+
+void pendingOrders() {
+    for (int i = 0; i < orderCount; i++) {
+        if (strcmp(orders[i].status, "Pending") == 0) {
+            printf("Order ID %d is pending.\n", orders[i].orderId);
+        }
+    }
+}
+
+void saveAndExit() {
+    FILE *file = fopen("orders.txt", "w");
+    if (!file) {
+        printf("Error saving orders!\n");
+        return;
+    }
+    for (int i = 0; i < orderCount; i++) {
+        fprintf(file, "Order ID: %d, Details: %s, Status: %s, Assigned Courier: %d\n",
+                orders[i].orderId, orders[i].details, orders[i].status, orders[i].assignedCourier);
+    }
+    fclose(file);
+    printf("Orders saved to orders.txt.\n");
+}
